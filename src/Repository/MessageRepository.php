@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Message;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @extends ServiceEntityRepository<Message>
@@ -21,21 +20,29 @@ class MessageRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Message::class);
     }
-    
-    public function by(Request $request): array
+
+    /**
+     * I am changing this method and its name for clarity.
+     * I will filter by request hence the name
+     * @param string|null $status
+     * @return Message[]
+     */
+    public function filterByStatus(?string $status): array
     {
-        $status = $request->query->get('status');
-        
-        if ($status) {
-            $messages = $this->getEntityManager()
-                ->createQuery(
-                    sprintf("SELECT m FROM App\Entity\Message m WHERE m.status = '%s'", $status)
-                )
-                ->getResult();
-        } else {
-            $messages = $this->findAll();
-        }
-        
-        return $messages;
+        /**
+         * If we want to use query builder for more complex queries
+         * $messages = $this->createQueryBuilder('messages')
+         * ->where('messages.status = :status')
+         * ->setParameter('status', $status)
+         * ->getQuery()
+         * ->getResult();
+         *
+         * Both methods are better for SQL Injection since it automatically handles parameter escaping.
+         * This is according to Symfony documentation. I chose the second one for simplicity
+         * and because it is built in MessageRepository class
+         */
+        return $status
+            ? $this->findBy(['status' => $status])
+            : $this->findAll();
     }
 }

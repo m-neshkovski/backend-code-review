@@ -10,12 +10,43 @@ use Zenstruck\Messenger\Test\InteractsWithMessenger;
 class MessageControllerTest extends WebTestCase
 {
     use InteractsWithMessenger;
-    
-    function test_list(): void
+
+    function test_list_with_status_not_set(): void
     {
-        $this->markTestIncomplete('the Controller-Action needs tests');
+        $client = static::createClient();
+
+        $client->request('GET', '/messages');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertIsArray($response['messages']);
     }
-    
+
+    function test_list_with_valid_status_set(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/messages', ['status' => 'sent']);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertIsArray($response['messages']);
+    }
+
+    function test_list_with_invalid_status_set(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/messages', ['status' => 'invalid_status']);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertSame([], $response['messages']);
+    }
+
     function test_that_it_sends_a_message(): void
     {
         $client = static::createClient();

@@ -17,14 +17,15 @@ class SendMessageHandler
     public function __construct(private EntityManagerInterface $manager)
     {
     }
-    
+
+    /**
+     * When a message is sent, only the text is important since we set status to default value 'sent'
+     * @param SendMessage $sendMessage
+     */
     public function __invoke(SendMessage $sendMessage): void
     {
         $message = new Message();
-        $message->setUuid(Uuid::v6()->toRfc4122());
         $message->setText($sendMessage->text);
-        $message->setStatus('sent');
-        $message->setCreatedAt(new \DateTime());
 
         $this->manager->persist($message);
         $this->manager->flush();

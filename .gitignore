@@ -1,3 +1,10 @@
+###> IDE's ###
+.idea/
+###< IDE's ###
+
+###> SQLite ###
+identifier.sqlite
+###< SQLite ###
 
 ###> symfony/framework-bundle ###
 /.env.local
