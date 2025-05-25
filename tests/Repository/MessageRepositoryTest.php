@@ -17,9 +17,6 @@ class MessageRepositoryTest extends KernelTestCase
          */
         $messagesRepository = self::getContainer()->get(MessageRepository::class);
 
-        $messages = $messagesRepository->findAll();
-
-        $this->assertIsArray($messages);
-        $this->assertSame([], $messages);
+        $this->assertSame([], $messagesRepository->findAll());
     }
 }

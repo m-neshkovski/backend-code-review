@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Enum\MessageStatus;
 use App\Message\SendMessage;
 use App\Repository\MessageRepository;
-use Controller\MessageControllerTest;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

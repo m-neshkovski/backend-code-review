@@ -16,19 +16,16 @@ class SendMessageHandlerTest extends KernelTestCase
     public function test_when_message_is_sent_it_is_persisted_in_database(): void
     {
         self::bootKernel();
-        // Arrange
         $text = 'Hello Team "Trust" of Digistore24!';
-
-        /** @var EntityManagerInterface $entityManager */
+        /**
+         * @var EntityManagerInterface $entityManager
+         */
         $entityManager = $this->getContainer()->get(EntityManagerInterface::class);
-
         $sendMessage = new SendMessage($text);
         $handler = new SendMessageHandler($entityManager);
 
-        // Act
         $handler->__invoke($sendMessage);
 
-        // Assert
         $message = $entityManager->getRepository(Message::class)
             ->findOneBy(['text' => $text]);
 
