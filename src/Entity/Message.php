@@ -9,75 +9,61 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
 {
     /**
-     * $id is immutable and AUTOINCREMENT in a database and therefore set to null
+     * The entity is more secure by using UUID as the primary key.
+     * The $uuid property is removed to avoid duplication.
+     * The $id property is masked to display as $uuid in a serialized/normalized response.
      */
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    /**
-     * $uuid is immutable and therefore set to a readonly - value set on instantiations in constructor
-     */
     #[ORM\Column(type: Types::GUID)]
     #[Groups(['message_list'])]
-    private readonly string $uuid;
+    #[SerializedName('uuid')]
+    private string $id;
 
-    /**
-     * $text is a required and user-generated there for mutable
-     */
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups(['message_list'])]
-    private string $text;
+    private ?string $text = null;
 
     /**
      * Status has a discrete value 'sent' or 'read' so it is an ENUM TYPE
      * It is not a good practice to allow it to be nullable,
      * so a default will be set in constructor to 'sent'.
-     * It is also mutable
+     * It is also mutable, so a setter is available.
      */
     #[ORM\Column(type: 'string', enumType: MessageStatus::class)]
     #[Groups(['message_list'])]
     private MessageStatus $status;
 
-    /**
-     * createdAt is immutable and therefore set to a readonly - value set on instantiations in constructor
-     */
     #[ORM\Column(type: 'datetime')]
-    private readonly DateTime $createdAt;
+    private DateTime $createdAt;
 
     public function __construct()
     {
-        // UUID and createdAt are immutable, this simplifies Message instantiation,
+        // ID and createdAt are immutable, this simplifies Message instantiation,
         // avoids unnecessary null checks and makes it easier to test.
-        $this->uuid = Uuid::v4()->toRfc4122();
+        $this->id = Uuid::v4()->toRfc4122();
         $this->createdAt = new DateTime();
         // We want to set a default status to 'sent' since it is the default in SendMessageHandler
-        $this->setStatus(MessageStatus::SENT);
+        $this->status = MessageStatus::SENT;
     }
 
 
-    public function getId(): ?int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function getUuid(): string
-    {
-        return $this->uuid;
-    }
-
-    public function getText(): string
+    public function getText(): ?string
     {
         return $this->text;
     }
 
-    public function setText(string $text): static
+    public function setText(string $text): self
     {
         $this->text = $text;
 
