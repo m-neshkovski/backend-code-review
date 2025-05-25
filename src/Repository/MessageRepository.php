@@ -23,13 +23,13 @@ class MessageRepository extends ServiceEntityRepository
 
     /**
      * I am changing this method and its name for clarity.
-     * I will filter by request hence the name
-     * @param string|null $status
+     * I will filter by request hence the name.
+     *
      * @return Message[]
      */
     public function filterByStatus(?string $status): array
     {
-        /**
+        /*
          * If we want to use query builder for more complex queries
          * $messages = $this->createQueryBuilder('messages')
          * ->where('messages.status = :status')

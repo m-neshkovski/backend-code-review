@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -6,7 +7,6 @@ namespace App\Controller;
 use App\Enum\MessageStatus;
 use App\Message\SendMessage;
 use App\Repository\MessageRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ class MessageController extends AbstractController
         // The repository should be responsible only for CRUD operations
         $status = (string) $request->query->get('status');
 
-        /**
+        /*
          * This is based on the openapi.yaml specification for parameter status.
          * I know that the valid status query parameter can be null
          * and any value defined in enum MessageStatus.
@@ -34,7 +34,7 @@ class MessageController extends AbstractController
          * AWS RDS, for example, charges for data transfer
          * so avoid whenever possible!!!!
          */
-        if(! MessageStatus::isValidForFilterByStatus($status)) {
+        if (!MessageStatus::isValidForFilterByStatus($status)) {
             return new JsonResponse([
                 'messages' => [],
             ]);
@@ -46,7 +46,7 @@ class MessageController extends AbstractController
         $messages = $normalize->normalize($messages, 'array', [
             'groups' => ['message_list'],
         ]);
-        
+
         return new JsonResponse([
             'messages' => $messages,
         ]);
@@ -56,7 +56,7 @@ class MessageController extends AbstractController
     public function send(Request $request, MessageBusInterface $bus): Response
     {
         $text = (string) $request->query->get('text');
-        
+
         if (empty($text)) {
             // This is based on the openapi.yaml specification that
             // query parameter 'text' is required.
@@ -70,7 +70,7 @@ class MessageController extends AbstractController
         }
 
         $bus->dispatch(new SendMessage($text));
-        
+
         return new Response('Successfully sent', 204);
     }
 }

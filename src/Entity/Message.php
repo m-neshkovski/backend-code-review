@@ -4,12 +4,11 @@ namespace App\Entity;
 
 use App\Enum\MessageStatus;
 use App\Repository\MessageRepository;
-use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
@@ -40,18 +39,17 @@ class Message
     private MessageStatus $status;
 
     #[ORM\Column(type: 'datetime')]
-    private DateTime $createdAt;
+    private \DateTime $createdAt;
 
     public function __construct()
     {
         // ID and createdAt are immutable, this simplifies Message instantiation,
         // avoids unnecessary null checks and makes it easier to test.
         $this->id = Uuid::v4()->toRfc4122();
-        $this->createdAt = new DateTime();
+        $this->createdAt = new \DateTime();
         // We want to set a default status to 'sent' since it is the default in SendMessageHandler
         $this->status = MessageStatus::SENT;
     }
-
 
     public function getId(): string
     {
@@ -82,7 +80,7 @@ class Message
         return $this;
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): \DateTime
     {
         return $this->createdAt;
     }

@@ -7,12 +7,13 @@ use App\Enum\MessageStatus;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+
 use function Psl\Iter\random;
 
 class AppFixtures extends Fixture
 {
     /**
-     * This method is simplified to match the new Message entity class
+     * This method is simplified to match the new Message entity class.
      */
     public function load(ObjectManager $manager): void
     {
@@ -22,7 +23,7 @@ class AppFixtures extends Fixture
             $message = new Message();
             $message->setText($faker->sentence);
             $message->setStatus(random([MessageStatus::SENT, MessageStatus::READ]));
-            
+
             $manager->persist($message);
         }
 

@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-enum MessageStatus:string
+enum MessageStatus: string
 {
     case SENT = 'sent';
     case READ = 'read';
@@ -15,10 +15,6 @@ enum MessageStatus:string
         return array_column(self::cases(), 'value');
     }
 
-    /**
-     * @param string|null $status
-     * @return bool
-     */
     public static function isValidForFilterByStatus(?string $status): bool
     {
         return empty($status) || in_array($status, self::values());

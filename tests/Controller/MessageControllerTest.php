@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Controller;
@@ -11,7 +12,7 @@ class MessageControllerTest extends WebTestCase
 {
     use InteractsWithMessenger;
 
-    function test_list_with_status_not_set(): void
+    public function testListWithStatusNotSet(): void
     {
         $client = static::createClient();
 
@@ -24,7 +25,7 @@ class MessageControllerTest extends WebTestCase
         $this->assertIsArray($response['messages']);
     }
 
-    function test_list_with_valid_status_set(): void
+    public function testListWithValidStatusSet(): void
     {
         $client = static::createClient();
 
@@ -37,7 +38,7 @@ class MessageControllerTest extends WebTestCase
         $this->assertIsArray($response['messages']);
     }
 
-    function test_list_with_invalid_status_set(): void
+    public function testListWithInvalidStatusSet(): void
     {
         $client = static::createClient();
 
@@ -50,7 +51,7 @@ class MessageControllerTest extends WebTestCase
         $this->assertSame([], $response['messages']);
     }
 
-    function test_that_it_fails_if_message_text_empty(): void
+    public function testThatItFailsIfMessageTextEmpty(): void
     {
         $client = static::createClient();
         $client->request('GET', '/messages/send');
@@ -58,18 +59,18 @@ class MessageControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(400);
     }
 
-    function test_that_it_fails_if_message_text_longer_than_255_chars(): void
+    public function testThatItFailsIfMessageTextLongerThan255Chars(): void
     {
         $client = static::createClient();
 
         $client->request('GET', '/messages/send', [
-            'text' => str_repeat('a', 256)
+            'text' => str_repeat('a', 256),
         ]);
 
         $this->assertResponseStatusCodeSame(400);
     }
 
-    function test_that_it_sends_a_message(): void
+    public function testThatItSendsAMessage(): void
     {
         $client = static::createClient();
         $client->request('GET', '/messages/send', [

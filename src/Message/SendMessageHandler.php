@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Message;
@@ -9,7 +10,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 /**
- * TODO: Cover with a test
+ * TODO: Cover with a test.
  */
 class SendMessageHandler
 {
@@ -18,8 +19,7 @@ class SendMessageHandler
     }
 
     /**
-     * When a message is sent, only the text is important since we set status to default value 'sent'
-     * @param SendMessage $sendMessage
+     * When a message is sent, only the text is important since we set status to default value 'sent'.
      */
     public function __invoke(SendMessage $sendMessage): void
     {
