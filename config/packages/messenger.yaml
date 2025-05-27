@@ -22,10 +22,17 @@ framework:
 
             # Route your messages to the transports
             'App\Message\*': sync
-            
+            # Added here and should be set to async in future
+            'App\Message\SendMessage': sync
+
+
+# 2x: Since zenstruck/messenger-test 1.8.0: Not supporting DelayStamp is deprecated, support will be removed in 2.0.
+# 2x in MessageControllerTest::testThatItSendsAMessage from Controller
+# I found that support of delly stamp should be explicitly declared to avoid this warning
+# even if it is not used.
 when@test:
     framework:
         messenger:
             transports:
-                async: test://
-                sync: test://
+                async: test://?support_delay_stamp=true
+                sync: test://?support_delay_stamp=true

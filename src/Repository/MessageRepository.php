@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Message;
+use App\Enum\MessageStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,12 +24,32 @@ class MessageRepository extends ServiceEntityRepository
 
     /**
      * I am changing this method and its name for clarity.
-     * I will filter by request hence the name.
+     * I will filter by status hence the name.
+     * If the status is not correct, an empty array will be returned.
+     *
+     * Filters messages by status
      *
      * @return Message[]
      */
     public function filterByStatus(?string $status): array
     {
+        /*
+         * This is based on the openapi.yaml specification for parameter status.
+         * I know that the valid status query parameter can be null
+         * and any value defined in enum MessageStatus.
+         *
+         * But we allow any possible query parameter since it is a filter, and we don't want to
+         * send a bad request exposing in a way all of our different statuses.
+         *
+         * Also if this is not true, I don't want to send the query to the database
+         * because this operation is expensive both on computing resources and
+         * AWS RDS, for example, charges for data transfer so avoid whenever possible!!!!
+         * And I know that an empty array will be returned.
+         */
+        if (!MessageStatus::isValidForFilterByStatus($status)) {
+            return [];
+        }
+
         /*
          * If we want to use query builder for more complex queries
          * $messages = $this->createQueryBuilder('messages')

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Controller;
+namespace App\Tests\Controller;
 
 use App\Message\SendMessage;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;

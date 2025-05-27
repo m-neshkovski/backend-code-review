@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
@@ -25,6 +26,7 @@ class Message
     private string $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank, Assert\Length(max: 255)]
     #[Groups(['message_list'])]
     private ?string $text = null;
 
@@ -35,6 +37,7 @@ class Message
      * It is also mutable, so a setter is available.
      */
     #[ORM\Column(type: 'string', enumType: MessageStatus::class)]
+    #[Assert\NotBlank]
     #[Groups(['message_list'])]
     private MessageStatus $status;
 
@@ -43,11 +46,13 @@ class Message
 
     public function __construct()
     {
-        // ID and createdAt are immutable, this simplifies Message instantiation,
-        // avoids unnecessary null checks and makes it easier to test.
+        /*
+         * ID and createdAt are immutable, and we want to set a default status to 'sent'
+         * since it is the default in SendMessageHandler. This simplifies Message instantiation,
+         * avoids unnecessary null checks and makes it easier to test.
+         */
         $this->id = Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTime();
-        // We want to set a default status to 'sent' since it is the default in SendMessageHandler
         $this->status = MessageStatus::SENT;
     }
 

@@ -2,28 +2,22 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Message;
-use App\Enum\MessageStatus;
+use App\Factory\MessageFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Faker\Factory;
-
-use function Psl\Iter\random;
 
 class AppFixtures extends Fixture
 {
     /**
      * This method is simplified to match the new Message entity class.
+     * It is decoupled from the Message class. Instead, we use MessageFactory,
+     * which handles Message class object instantiation.
      */
     public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create();
+        $messageFactory = new MessageFactory();
 
-        foreach (range(1, 10) as $i) {
-            $message = new Message();
-            $message->setText($faker->sentence);
-            $message->setStatus(random([MessageStatus::SENT, MessageStatus::READ]));
-
+        foreach ($messageFactory->createFakeMessages(10) as $message) {
             $manager->persist($message);
         }
 

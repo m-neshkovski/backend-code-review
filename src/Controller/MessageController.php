@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Enum\MessageStatus;
 use App\Message\SendMessage;
 use App\Repository\MessageRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,32 +12,24 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class MessageController extends AbstractController
 {
-    // This is based on the openapi.yaml specification that
-    // '/messages' path method is defined as GET.
+    /**
+     * This is based on the openapi.yaml specification that
+     * '/messages' path method is defined as GET.
+     *
+     * @throws ExceptionInterface
+     */
     #[Route('/messages', methods: ['GET'])]
     public function list(Request $request, MessageRepository $messagesRepository, NormalizerInterface $normalize): Response
     {
         // The repository should be responsible only for CRUD operations
+        // We are not validating the status since it can be anything
         $status = (string) $request->query->get('status');
-
-        /*
-         * This is based on the openapi.yaml specification for parameter status.
-         * I know that the valid status query parameter can be null
-         * and any value defined in enum MessageStatus.
-         * So if this is not true, I don't want to send the query to the database
-         * because this operation is expensive both on computing resources and
-         * AWS RDS, for example, charges for data transfer
-         * so avoid whenever possible!!!!
-         */
-        if (!MessageStatus::isValidForFilterByStatus($status)) {
-            return new JsonResponse([
-                'messages' => [],
-            ]);
-        }
 
         // Names are changed for clarity
         $messages = $messagesRepository->filterByStatus($status);
@@ -52,24 +43,24 @@ class MessageController extends AbstractController
         ]);
     }
 
+    /**
+     *  This is based on the openapi.yaml specification.
+     *  The path that sends a message as a text query parameter.
+     */
     #[Route('/messages/send', methods: ['GET'])]
-    public function send(Request $request, MessageBusInterface $bus): Response
+    public function send(Request $request, MessageBusInterface $bus, ValidatorInterface $validator): Response
     {
         $text = (string) $request->query->get('text');
 
-        if (empty($text)) {
-            // This is based on the openapi.yaml specification that
-            // query parameter 'text' is required.
-            return new Response('Text is required', 400);
+        $sendMessage = new SendMessage($text);
+
+        $errors = $validator->validate($sendMessage);
+
+        if (count($errors) > 0) {
+            return new Response((string) $errors, 400);
         }
 
-        if (strlen(trim($text)) > 255) {
-            // This is based on the openapi.yaml specification that
-            // query parameter 'text' is of type 'string'.
-            return new Response('Text is longer than 255 characters', 400);
-        }
-
-        $bus->dispatch(new SendMessage($text));
+        $bus->dispatch($sendMessage);
 
         return new Response('Successfully sent', 204);
     }
