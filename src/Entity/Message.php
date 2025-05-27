@@ -2,49 +2,63 @@
 
 namespace App\Entity;
 
+use App\Enum\MessageStatus;
 use App\Repository\MessageRepository;
-use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
-/**
- * TODO: Review Message class
- */
 class Message
 {
+    /**
+     * The entity is more secure by using UUID as the primary key.
+     * The $uuid property is removed to avoid duplication.
+     * The $id property is masked to display as $uuid in a serialized/normalized response.
+     */
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
     #[ORM\Column(type: Types::GUID)]
-    private ?string $uuid = null;
+    #[Groups(['message_list'])]
+    #[SerializedName('uuid')]
+    private string $id;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank, Assert\Length(max: 255)]
+    #[Groups(['message_list'])]
     private ?string $text = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $status = null;
-    
-    #[ORM\Column(type: 'datetime')]
-    private DateTime $createdAt;
+    /**
+     * Status has a discrete value 'sent' or 'read' so it is an ENUM TYPE
+     * It is not a good practice to allow it to be nullable,
+     * so a default will be set in constructor to 'sent'.
+     * It is also mutable, so a setter is available.
+     */
+    #[ORM\Column(type: 'string', enumType: MessageStatus::class)]
+    #[Assert\NotBlank]
+    #[Groups(['message_list'])]
+    private MessageStatus $status;
 
-    public function getId(): ?int
+    #[ORM\Column(type: 'datetime')]
+    private \DateTime $createdAt;
+
+    public function __construct()
+    {
+        /*
+         * ID and createdAt are immutable, and we want to set a default status to 'sent'
+         * since it is the default in SendMessageHandler. This simplifies Message instantiation,
+         * avoids unnecessary null checks and makes it easier to test.
+         */
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->createdAt = new \DateTime();
+        $this->status = MessageStatus::SENT;
+    }
+
+    public function getId(): string
     {
         return $this->id;
-    }
-
-    public function getUuid(): ?string
-    {
-        return $this->uuid;
-    }
-
-    public function setUuid(string $uuid): static
-    {
-        $this->uuid = $uuid;
-
-        return $this;
     }
 
     public function getText(): ?string
@@ -52,34 +66,27 @@ class Message
         return $this->text;
     }
 
-    public function setText(string $text): static
+    public function setText(string $text): self
     {
         $this->text = $text;
 
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): MessageStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(MessageStatus $status): self
     {
         $this->status = $status;
 
         return $this;
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): \DateTime
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTime $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        
-        return $this;
     }
 }

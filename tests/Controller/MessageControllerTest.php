@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Controller;
+namespace App\Tests\Controller;
 
 use App\Message\SendMessage;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -10,17 +11,70 @@ use Zenstruck\Messenger\Test\InteractsWithMessenger;
 class MessageControllerTest extends WebTestCase
 {
     use InteractsWithMessenger;
-    
-    function test_list(): void
+
+    public function testListWithStatusNotSet(): void
     {
-        $this->markTestIncomplete('the Controller-Action needs tests');
+        $client = static::createClient();
+
+        $client->request('GET', '/messages');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertIsArray($response['messages']);
     }
-    
-    function test_that_it_sends_a_message(): void
+
+    public function testListWithValidStatusSet(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/messages', ['status' => 'sent']);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertIsArray($response['messages']);
+    }
+
+    public function testListWithInvalidStatusSet(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/messages', ['status' => 'invalid_status']);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+        $this->assertIsString($client->getResponse()->getContent());
+        $response = (array) json_decode($client->getResponse()->getContent(), true);
+        $this->assertSame([], $response['messages']);
+    }
+
+    public function testThatItFailsIfMessageTextEmpty(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/messages/send');
+
+        $this->assertResponseStatusCodeSame(400);
+    }
+
+    public function testThatItFailsIfMessageTextLongerThan255Chars(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/messages/send', [
+            'text' => str_repeat('a', 256),
+        ]);
+
+        $this->assertResponseStatusCodeSame(400);
+    }
+
+    public function testThatItSendsAMessage(): void
     {
         $client = static::createClient();
         $client->request('GET', '/messages/send', [
-            'text' => 'Hello World',
+            'text' => 'Hello Team "Trust" of Digistore24!',
         ]);
 
         $this->assertResponseIsSuccessful();

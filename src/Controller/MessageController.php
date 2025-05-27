@@ -1,57 +1,67 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
 
 use App\Message\SendMessage;
 use App\Repository\MessageRepository;
-use Controller\MessageControllerTest;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-/**
- * @see MessageControllerTest
- * TODO: review both methods and also the `openapi.yaml` specification
- *       Add Comments for your Code-Review, so that the developer can understand why changes are needed.
- */
 class MessageController extends AbstractController
 {
     /**
-     * TODO: cover this method with tests, and refactor the code (including other files that need to be refactored)
+     * This is based on the openapi.yaml specification that
+     * '/messages' path method is defined as GET.
+     *
+     * @throws ExceptionInterface
      */
-    #[Route('/messages')]
-    public function list(Request $request, MessageRepository $messages): Response
+    #[Route('/messages', methods: ['GET'])]
+    public function list(Request $request, MessageRepository $messagesRepository, NormalizerInterface $normalize): Response
     {
-        $messages = $messages->by($request);
-  
-        foreach ($messages as $key=>$message) {
-            $messages[$key] = [
-                'uuid' => $message->getUuid(),
-                'text' => $message->getText(),
-                'status' => $message->getStatus(),
-            ];
-        }
-        
-        return new Response(json_encode([
+        // The repository should be responsible only for CRUD operations
+        // We are not validating the status since it can be anything
+        $status = (string) $request->query->get('status');
+
+        // Names are changed for clarity
+        $messages = $messagesRepository->filterByStatus($status);
+
+        $messages = $normalize->normalize($messages, 'array', [
+            'groups' => ['message_list'],
+        ]);
+
+        return new JsonResponse([
             'messages' => $messages,
-        ], JSON_THROW_ON_ERROR), headers: ['Content-Type' => 'application/json']);
+        ]);
     }
 
+    /**
+     *  This is based on the openapi.yaml specification.
+     *  The path that sends a message as a text query parameter.
+     */
     #[Route('/messages/send', methods: ['GET'])]
-    public function send(Request $request, MessageBusInterface $bus): Response
+    public function send(Request $request, MessageBusInterface $bus, ValidatorInterface $validator): Response
     {
-        $text = $request->query->get('text');
-        
-        if (!$text) {
-            return new Response('Text is required', 400);
+        $text = (string) $request->query->get('text');
+
+        $sendMessage = new SendMessage($text);
+
+        $errors = $validator->validate($sendMessage);
+
+        if (count($errors) > 0) {
+            return new Response((string) $errors, 400);
         }
 
-        $bus->dispatch(new SendMessage($text));
-        
+        $bus->dispatch($sendMessage);
+
         return new Response('Successfully sent', 204);
     }
 }
