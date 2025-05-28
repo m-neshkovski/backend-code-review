@@ -62,6 +62,17 @@ class MessageController extends AbstractController
 
         $bus->dispatch($sendMessage);
 
+        /*
+         * The HTTP 204 (No Content) status code is specifically designed to indicate
+         * that the server has successfully fulfilled the request but there is no content
+         * to send in the response payload.
+         *
+         * This is part of the HTTP specification.
+         *
+         * If switched to status 202 - Accepted, there will be a content in the response,
+         * since I don't want to expose any information and the asynchronous handling
+         * it is left like this. Status 204 is enough to confirm that the message is dispatched.
+         */
         return new Response('Successfully sent', 204);
     }
 }

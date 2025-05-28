@@ -79,7 +79,7 @@ class MessageControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         // This is using https://packagist.org/packages/zenstruck/messenger-test
-        $this->transport('sync')
+        $this->transport('async')
             ->queue()
             ->assertContains(SendMessage::class, 1);
     }

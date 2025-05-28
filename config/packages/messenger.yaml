@@ -22,8 +22,8 @@ framework:
 
             # Route your messages to the transports
             'App\Message\*': sync
-            # Added here and should be set to async in future
-            'App\Message\SendMessage': sync
+            # Added here and set to async
+            'App\Message\SendMessage': async
 
 
 # 2x: Since zenstruck/messenger-test 1.8.0: Not supporting DelayStamp is deprecated, support will be removed in 2.0.

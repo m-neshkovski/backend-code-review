@@ -104,7 +104,7 @@ The codebase implements several design patterns:
 ### Command/Handler Pattern (via Symfony Messenger)
 - `SendMessage` acts as a command object containing the data needed for the operation
 - `SendMessageHandler` processes the command and performs the actual work
-- This pattern enables decoupling and potentially asynchronous processing
+- This pattern enables decoupling and asynchronous processing
 
 ### Data Transfer Object (DTO) Pattern
 - `SendMessage` serves as a DTO to transfer data between the controller and handler
@@ -121,7 +121,7 @@ The code integrates well with the Symfony framework:
 
 ### Symfony Messenger
 - Appropriate configuration in `messenger.yaml`
-- Currently using sync transport but designed to be easily switched to async
+- Appropriate usage of async transport
 - Proper error handling and logging
 
 ### Symfony Best Practices
@@ -138,5 +138,6 @@ The codebase follows modern PHP and Symfony best practices, adhering to SOLID pr
 
 While the code is generally well-designed, there are a few potential improvements:
 
-1. As noted in the messenger configuration, the `SendMessage` handling could be moved to async processing in production
-2. The controller's error response in the `send` method could return a more structured JSON error response
+1. The controller's error response in the `send` method could return a more structured JSON error response
+2. MessageController method list should be paginated (I will certainly do this when obligations allow me to, not later than Friday. Just for practice!!)
+3. Future improvement would be an implementation of cache (Redis,Memcached etc.)
